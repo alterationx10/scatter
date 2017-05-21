@@ -1,7 +1,7 @@
 package models
 
-import slick.lifted.{ProvenShape, Rep, Tag}
-import modules.SlickPostgresProfile._
+import slick.lifted.{ProvenShape, Tag}
+import modules.SlickPostgresProfile.api._
 
 object Post {
   val TEXT: Int = 1
@@ -23,13 +23,13 @@ case class Post(
 
 class PostTable(tag: Tag) extends Table[Post](tag, "posts") {
 
-  def id: Rep[Option[Long]] = column[Option[Long]]("id", O.PrimaryKey, O.AutoInc)
-  def date: Rep[Long] = column[Long]("date")
-  def content: Rep[String] = column[String]("content")
-  def mediaType: Rep[Int] = column[Int]("media_type")
-  def mediaLink: Rep[Option[String]] = column[Option[String]]("media_link")
-  def tags: Rep[List[String]] = column[List[String]]("tags")
-  def nLikes: Rep[Long] = column[Long]("n_likes")
+  def id: Rep[Option[Long]] = column("id", O.PrimaryKey, O.AutoInc)
+  def date: Rep[Long] = column("date")
+  def content: Rep[String] = column("content")
+  def mediaType: Rep[Int] = column("media_type")
+  def mediaLink: Rep[Option[String]] = column("media_link")
+  def tags: Rep[List[String]] = column("tags")
+  def nLikes: Rep[Long] = column("n_likes")
 
-  override def * : ProvenShape[Post] = ???
+  override def * : ProvenShape[Post] = (id, date, content, mediaType, mediaLink, tags, nLikes) <> ((Post.apply _).tupled, Post.unapply)
 }
