@@ -1,6 +1,7 @@
 package controllers
 
 import play.api.mvc.Controller
+import play.cache.Cached
 
 
 class ApplicationController extends Controller {
@@ -10,5 +11,7 @@ class ApplicationController extends Controller {
   def index = TODO
   def post = TODO
   def submit = TODO
+
+  def s3File(key: String) = TODO
 
 }
