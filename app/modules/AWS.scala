@@ -14,9 +14,9 @@ case class AWSSettingsException(key: String) extends Exception(s"Missing key $ke
 @Singleton
 class AWS @Inject()(configuration: Configuration){
 
-  private val configKey: String = "aws.config.accessKeyId"
-  private val configSecret: String = "aws.config.secretAccessKey"
-  private val configRegion: String = "aws.config.region"
+  private val configKey: String = "aws.accessKeyId"
+  private val configSecret: String = "aws.secretAccessKey"
+  private val configRegion: String = "aws.region"
   private val accessKey: String = configuration.getString(configKey).getOrElse(throw AWSSettingsException(configKey))
   private val secretKey: String = configuration.getString(configSecret).getOrElse(throw AWSSettingsException(configSecret))
   private val awsCreds: AWSStaticCredentialsProvider = new AWSStaticCredentialsProvider(new BasicAWSCredentials(accessKey, secretKey))
@@ -25,7 +25,6 @@ class AWS @Inject()(configuration: Configuration){
 
   val s3Client: AmazonS3 = AmazonS3ClientBuilder.standard().withRegion(region).withCredentials(awsCreds).build()
   val snsClient: AmazonSNS = AmazonSNSClientBuilder.standard().withRegion(region).withCredentials(awsCreds).build()
-//  val sesClient: AmazonSimpleEmailService = AmazonSimpleEmailServiceClientBuilder.standard().withRegion(region).withCredentials(awsCreds).build()
 
 }
 

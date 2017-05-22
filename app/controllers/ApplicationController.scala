@@ -1,14 +1,15 @@
 package controllers
 
-import play.api.mvc.Controller
-import play.cache.Cached
+import play.api.mvc.{Action, Controller}
 
 
 class ApplicationController extends Controller {
 
   def login = TODO
   def logout = TODO
-  def index = TODO
+  def index = Action {
+    Ok("It works!")
+  }
   def post = TODO
   def submit = TODO
 

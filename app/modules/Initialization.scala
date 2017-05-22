@@ -5,6 +5,7 @@ import javax.inject._
 import com.google.inject.AbstractModule
 import play.api.Configuration
 
+@Singleton
 class Initialization @Inject()(configuration: Configuration){
 
   // Set up AWS
