@@ -4,7 +4,7 @@ import javax.inject._
 
 import com.google.inject.AbstractModule
 import modules.SlickPostgresProfile.api._
-import play.api.{Configuration, Logger}
+import play.api.Logger
 import play.api.inject.ApplicationLifecycle
 
 import scala.concurrent.Future

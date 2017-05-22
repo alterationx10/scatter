@@ -2,6 +2,8 @@ name := """scatter"""
 
 version := "1.0-SNAPSHOT"
 
+import NativePackagerKeys._
+
 lazy val root = (project in file(".")).enablePlugins(PlayScala)
 
 scalaVersion := "2.11.11"
