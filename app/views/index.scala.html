@@ -1,20 +1,20 @@
-@*
- * This template takes a single argument, a String containing a
- * message to display.
- *@
 @(message: String)
 
-@*
- * Call the `main` template with two arguments. The first
- * argument is a `String` with the title of the page, the second
- * argument is an `Html` object containing the body of the page.
- *@
-@main("Welcome to Play") {
+@main("Scatter") {
 
-    @*
-     * Get an `Html` object by calling the built-in Play welcome
-     * template and passing a `String` message.
-     *@
-    @play20.welcome(message, style = "Scala")
+    <div class="pure-u-1">
+        @for(i <- 1 to 100) {
+            <div class="pure-g post">
+                <div class="pure-u-1 post-header">Thursday, May 25 12:00pm</div>
+                <div class="pure-u-1 post-content">
+                    <p>Some content goes here. Not a lot, just around 140 characters or so. Maybe a link. Maybe an image. Who knows?</p>
+                </div>
+                <div class="pure-u-1 post-footer">
+                    <span class="share">::share::</span>
+                    <span class="heart">::heart::</span>
+                </div>
+            </div>
+        }
+    </div>
 
 }

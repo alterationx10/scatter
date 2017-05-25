@@ -13,7 +13,7 @@ class ApplicationController extends Controller {
   View a timeline of posts
    */
   def index = Action {
-    Ok("It works!")
+    Ok(views.html.index(""))
   }
 
   /*

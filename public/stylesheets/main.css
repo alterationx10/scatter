@@ -1,0 +1,76 @@
+body {
+    background-color: #EBEBEB;
+}
+
+.header {
+    margin: 0 auto;
+    width: 960px;
+}
+
+.banner {
+    text-align: center;
+
+}
+.img-banner {
+    z-index: -1;
+    height: 320px;
+    width: 960px;
+}
+
+.avatar {
+    text-align: left;
+}
+
+.img-avatar {
+    border: solid #EBEBEB 5px;
+    height: 150px;
+    width: 150px;
+    margin-top: -75px;
+    margin-left: 75px;
+    border-radius: 15px;
+}
+
+.stats {
+    text-align: right;
+    margin-top: -75px;
+    padding-right: 75px;
+}
+
+.span-stats {
+
+}
+
+.container {
+    width: 960px;
+    margin: 0 auto;
+}
+
+.post {
+    margin: 2em auto;
+    padding: 1em;
+    width: 66%;
+    box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2);
+    transition: 0.3s;
+}
+
+.post:hover {
+    box-shadow: 0 16px 32px 0 rgba(0,0,0,0.2);
+}
+
+.post-header {
+    text-align: right;
+}
+
+
+.post-content {
+    margin: 1em;
+}
+.post-footer {
+    text-align: right;
+}
+.share {
+    float: left;
+}
+.heart {
+    float: right;
+}
