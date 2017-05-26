@@ -15,14 +15,14 @@
     <body>
         <div class="pure-g header">
             <div class="pure-u-1 banner">
-                <img src="https://pbs.twimg.com/profile_banners/613101366/1473119884" class="img-banner">
+                <img src="@routes.Assets.versioned("images/banner.png")" class="img-banner">
             </div>
             <div class="pure-u-1 avatar">
-                <img src="https://pbs.twimg.com/profile_images/791347834767286272/9JIrNywU.jpg" class="img-avatar">
+                <a href="@routes.ApplicationController.index()"><img src="@routes.Assets.versioned("images/avatar.jpg")" class="img-avatar"></a>
             </div>
             <div class="pure-u-1 stats">
                 <span class="span-stats">
-                    123 Posts 456 ::hearts::
+                    123 Posts 456 &hearts;
                 </span>
             </div>
         </div>

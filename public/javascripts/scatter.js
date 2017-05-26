@@ -1,3 +1,3 @@
-if (window.console) {
-  console.log("Welcome to your Play application's JavaScript!");
+function formatDate(epoch) {
+    return new Date(epoch).toLocaleString()
 }

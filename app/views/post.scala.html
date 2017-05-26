@@ -1,11 +1,9 @@
-@(posts: Seq[Post])
+@(post: Post)
 
 @main("Alteration x10") {
 
     <div class="pure-u-1">
-        @for(post <- posts) {
            @views.html.postfragment.render(post)
-        }
     </div>
 
     <script type="text/javascript">

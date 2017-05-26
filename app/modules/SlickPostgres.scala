@@ -13,7 +13,7 @@ import scala.concurrent.Future
 class SlickPostgres @Inject() (lifecycle: ApplicationLifecycle) {
 
   Logger.info("Starting up database connection...")
-  val db: Database = Database.forConfig("postgres")
+  val db: Database = Database.forConfig("scatter.postgres")
 
   lifecycle.addStopHook { () =>
     Future.successful{
