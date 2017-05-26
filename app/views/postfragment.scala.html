@@ -1,4 +1,4 @@
-@(post: Post)
+@(post: Post, isLiked: Boolean)
 
 <div class="pure-g post">
     <div class="pure-u-1 post-header"><span class="post-type">
@@ -43,6 +43,24 @@
     </div>
     <div class="pure-u-1 post-footer">
         <span class="share"><a href="@routes.ApplicationController.post(post.id.getOrElse(0))"><i class="fa fa-chain"></i></a> </span>
-        <span class="heart">@post.nLikes &hearts;</span>
+        <span class="heart">
+            <span id="heart-count-@post.id">@post.nLikes</span>  <i id="heart-icon-@post.id" class="fa fa-heart@if(!isLiked){-o}" aria-hidden="true"></i>
+        </span>
+        @if(!isLiked){
+            <script type="text/javascript">
+                    var link = "#heart-icon-@post.id";
+                    $(link).one("click", function (e) {
+                        e.preventDefault();
+                        $.ajax({url: "@routes.ApplicationController.likePost(post.id.get)", success: function(result){
+                            var count = "#heart-count-@post.id";
+                            var icon = "#heart-icon-@post.id";
+                            $(count).html(result.hearts);
+                            $(icon).addClass("fa-heart");
+                            $(icon).removeClass("fa-heart-o");
+                            updateHeaderStats("@routes.ApplicationController.postStats()");
+                        }});
+                    });
+            </script>
+        }
     </div>
-    </div>
+</div>

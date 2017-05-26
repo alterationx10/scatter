@@ -1,9 +1,9 @@
-@(post: Post)
+@(post: Post, likedPosts: List[Long])
 
 @main("Alteration x10") {
 
     <div class="pure-u-5-6 post-container">
-           @views.html.postfragment.render(post)
+           @views.html.postfragment.render(post, likedPosts.contains(post.id.get))
     </div>
 
     <script type="text/javascript">

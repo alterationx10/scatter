@@ -2,11 +2,12 @@
 # This file defines all application routes (Higher priority routes first)
 # ~~~~
 
-GET        /                       @controllers.ApplicationController.index
-GET        /post/:id               @controllers.ApplicationController.post(id: Long)
+GET        /                         @controllers.ApplicationController.index
+GET        /post/:id                 @controllers.ApplicationController.post(id: Long)
 
 
-GET        /api/posts/stats        @controllers.ApplicationController.postStats
+GET        /api/posts/stats          @controllers.ApplicationController.postStats
+GET        /api/post/:id/like        @controllers.ApplicationController.likePost(id: Long)
 
 # Map static resources from the /public folder to the /assets URL path
-GET        /assets/*file           controllers.Assets.versioned(path="/public", file: Asset)
+GET        /assets/*file             controllers.Assets.versioned(path="/public", file: Asset)

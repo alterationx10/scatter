@@ -111,3 +111,8 @@ body {
 .heart-count-icon {
     color: darkred;
 }
+
+.heart-link {
+    color: inherit;
+    text-decoration: none;
+}

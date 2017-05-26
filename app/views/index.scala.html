@@ -1,10 +1,10 @@
-@(posts: Seq[Post])
+@(posts: Seq[Post], likedPosts: List[Long])
 
 @main("Alteration x10") {
 
     <div class="pure-u-5-6 post-container">
         @for(post <- posts) {
-           @views.html.postfragment.render(post)
+           @views.html.postfragment.render(post, likedPosts.contains(post.id.get))
         }
     </div>
 
