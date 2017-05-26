@@ -36,6 +36,18 @@ body {
     padding-right: 75px;
 }
 
+#post-count {
+    color: darkorange;
+}
+
+.post-count-text {
+    color: darkorange;
+}
+
+#heart-count {
+    color: darkred;
+}
+
 .span-stats {
 
 }
@@ -57,20 +69,45 @@ body {
     box-shadow: 0 16px 32px 0 rgba(0,0,0,0.2);
 }
 
+.post-container {
+    margin: 0 auto;
+    font-size: 1.25em;
+}
+
 .post-header {
     text-align: right;
 }
 
+.post-type {
+    float: left;
+}
 
 .post-content {
     margin: 1em;
 }
+
+.post-audio {
+    margin: 0 auto;
+    text-align: center;
+    padding-top: 2em;
+}
+
 .post-footer {
     text-align: right;
 }
 .share {
     float: left;
 }
+.share a {
+    color: #0078e7;
+    text-decoration: none;
+}
+
 .heart {
+    color: darkred;
     float: right;
+}
+
+.heart-count-icon {
+    color: darkred;
 }

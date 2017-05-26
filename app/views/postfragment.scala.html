@@ -1,28 +1,48 @@
 @(post: Post)
 
 <div class="pure-g post">
-    <div class="pure-u-1 post-header"><span class="dt_format">@post.date</span></div>
+    <div class="pure-u-1 post-header"><span class="post-type">
+        @if(post.mediaType == Post.TEXT){
+        }
+        @if(post.mediaType == Post.IMAGE){
+        }
+        @if(post.mediaType == Post.AUDIO){
+        }
+        @if(post.mediaType == Post.VIDEO){
+        }
+        @if(post.mediaType == Post.EXT_LINK){
+        }
+    </span> <span class="dt_format">@post.date</span></div>
     <div class="pure-u-1 post-content">
         @if(post.mediaLink.isDefined){
             @if(post.mediaType == Post.IMAGE){
-                @*img link*@
+                <a href="@post.mediaLink" target="_blank">
+                    <img src="@post.mediaLink" class="pure-img">
+                </a>
             }
             @if(post.mediaType == Post.AUDIO){
-                @*audio player*@
+                <div class="post-audio">
+                    <audio controls preload="metadata">
+                        <source src="@post.mediaLink" type="audio/mpeg">
+                        Your browser does not support the audio tag.
+                    </audio>
+                </div>
             }
             @if(post.mediaType == Post.VIDEO){
-                @*video player*@
+                <video controls preload="metadata" class="pure-img">
+                    <source src="@post.mediaLink" type="video/mp4">
+                    Your browser does not support the video tag.
+                </video>
             }
         }
-        @if(post.mediaType == Post.TEXT){
-            <p>@post.content</p>
-        }
+    <p>@post.content</p>
+
         @if(post.mediaLink.isDefined && post.mediaType == Post.EXT_LINK){
             @*external link *@
         }
     </div>
     <div class="pure-u-1 post-footer">
-        <span class="share"><a href="@routes.ApplicationController.post(post.id.getOrElse(0))" class="pure-button">Permalink</a> </span>
+        <span class="share"><a href="@routes.ApplicationController.post(post.id.getOrElse(0))"><i class="fa fa-chain"></i></a> </span>
         <span class="heart">@post.nLikes &hearts;</span>
     </div>
-</div>
+    </div>
