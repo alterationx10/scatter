@@ -2,38 +2,36 @@ body {
     background-color: #EBEBEB;
 }
 
+.site-container {
+    margin:0 auto;
+}
+
 .header {
-    margin: 0 auto;
-    width: 960px;
 }
 
 .banner {
-    text-align: center;
-
 }
+
 .img-banner {
     z-index: -1;
-    height: 320px;
-    width: 960px;
+    margin: 0 auto;
 }
 
 .avatar {
-    text-align: left;
+    margin-top: -75px;
 }
 
 .img-avatar {
+    margin: 0 auto;
     border: solid #EBEBEB 5px;
-    height: 150px;
-    width: 150px;
-    margin-top: -75px;
-    margin-left: 75px;
     border-radius: 15px;
 }
 
 .stats {
-    text-align: right;
-    margin-top: -75px;
-    padding-right: 75px;
+    text-align: center;
+    /*margin-top: -75px;*/
+    /*padding-right: 75px;*/
+    /*font-size: 2em;*/
 }
 
 #post-count {
@@ -49,18 +47,17 @@ body {
 }
 
 .span-stats {
-
+    font-size: 1.25em;
 }
 
 .container {
-    width: 960px;
+    /*width: 960px;*/
     margin: 0 auto;
 }
 
 .post {
     margin: 2em auto;
     padding: 1em;
-    width: 66%;
     box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2);
     transition: 0.3s;
 }
@@ -71,7 +68,7 @@ body {
 
 .post-container {
     margin: 0 auto;
-    font-size: 1.25em;
+    /*font-size: 1.25em;*/
 }
 
 .post-header {
@@ -83,7 +80,7 @@ body {
 }
 
 .post-content {
-    margin: 1em;
+    padding: 1em;
 }
 
 .post-audio {
@@ -92,12 +89,19 @@ body {
     padding-top: 2em;
 }
 
+.audio-player {
+    width: 100%;
+}
+
 .post-footer {
     text-align: right;
+    font-size: 1.25em;
 }
 .share {
     float: left;
+    padding-left: 1em;
 }
+
 .share a {
     color: #0078e7;
     text-decoration: none;
@@ -106,11 +110,13 @@ body {
 .heart {
     color: darkred;
     float: right;
+    padding-right: 1em;
 }
 
 .heart-count-icon {
     color: darkred;
 }
+
 
 .heart-link {
     color: inherit;

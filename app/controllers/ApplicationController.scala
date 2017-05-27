@@ -45,7 +45,7 @@ class ApplicationController @Inject()(postgres: SlickPostgres, cacheApi: CacheAp
       postOpt <- postgres.db.run(postQuery.filter(_.id === id).result).map(_.headOption)
     } yield {
       postOpt match {
-        case Some(post) => Ok(views.html.post(post, likedPosts))
+        case Some(post) => Ok(views.html.post(post, likedPosts)).withSession(request.session)
         case None => NotFound
       }
     }

@@ -22,7 +22,7 @@
             }
             @if(post.mediaType == Post.AUDIO){
                 <div class="post-audio">
-                    <audio controls preload="metadata">
+                    <audio controls preload="metadata" class="audio-player">
                         <source src="@post.mediaLink" type="audio/mpeg">
                         Your browser does not support the audio tag.
                     </audio>
@@ -44,7 +44,7 @@
     <div class="pure-u-1 post-footer">
         <span class="share"><a href="@routes.ApplicationController.post(post.id.getOrElse(0))"><i class="fa fa-chain"></i></a> </span>
         <span class="heart">
-            <span id="heart-count-@post.id">@post.nLikes</span>  <i id="heart-icon-@post.id" class="fa fa-heart@if(!isLiked){-o}" aria-hidden="true"></i>
+            <span id="heart-count-@post.id">@post.nLikes</span>  <i id="heart-icon-@post.id" class="fa fa-heart@if(!isLiked){-o} heart-count-icon" aria-hidden="true"></i>
         </span>
         @if(!isLiked){
             <script type="text/javascript">
