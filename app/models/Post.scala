@@ -1,9 +1,7 @@
 package models
 
-import java.awt.PageAttributes.MediaType
-
-import slick.lifted.{ProvenShape, Tag}
 import modules.SlickPostgresProfile.api._
+import slick.lifted.{ProvenShape, Tag}
 
 object Post {
   val TEXT: Int = 1
@@ -13,7 +11,7 @@ object Post {
   val EXT_LINK: Int = 5
 
   def parseTags(content: String): List[String] = {
-    content.split(" ").toList.filter(_.startsWith("#")).map(_.replaceAll("#",""))
+    content.split(" ").toList.filter(_.startsWith("#")).map(_.replaceAll("#","")).map(_.toLowerCase)
   }
 
   def newPost(content: String, mediaType: Int = TEXT, mediaLink: Option[String] = None): Post = {
