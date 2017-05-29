@@ -22,6 +22,7 @@
             }
             @if(post.mediaType == Post.AUDIO){
                 <div class="post-audio">
+                    <i class="fa fa-file-audio-o media-icon" aria-hidden="true"></i>
                     <audio controls preload="metadata" class="audio-player">
                         <source src="@post.mediaLink" type="audio/mpeg">
                         Your browser does not support the audio tag.
@@ -34,11 +35,15 @@
                     Your browser does not support the video tag.
                 </video>
             }
+            @if(post.mediaType == Post.EXT_LINK) {
+                <div class="post-extlink">
+                    <a href="@post.mediaLink" target="_blank"><i class="fa fa-external-link media-icon" aria-hidden="true"></i></a>
+                </div>
+            }
         }
     <p>@post.content</p>
 
         @if(post.mediaLink.isDefined && post.mediaType == Post.EXT_LINK){
-            @*external link *@
         }
     </div>
     <div class="pure-u-1 post-footer">
