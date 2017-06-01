@@ -144,3 +144,9 @@ body {
 .long-link {
     overflow-wrap: break-word;
 }
+
+.login {
+    margin: 0 auto;
+    text-align: center;
+    padding-top: 2em;
+}

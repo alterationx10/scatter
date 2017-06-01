@@ -3,63 +3,38 @@ package controllers
 import java.util.UUID
 import javax.inject._
 
-import com.amazonaws.services.s3.model.PutObjectRequest
-import models.{Post, PostTable, SessionUser, SessionUserTable}
-import modules.SlickPostgres
-import play.api.mvc.{Action, AnyContent, Controller, Request}
-import slick.lifted.TableQuery
+import models._
 import modules.SlickPostgresProfile.api._
-import play.api.Logger
+import modules.{AWS, SlickPostgres}
 import play.api.cache.CacheApi
+import play.api.libs.Files
+import play.api.libs.crypto.CookieSigner
 import play.api.libs.json.Json
+import play.api.mvc._
+import slick.lifted.TableQuery
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.util.Try
 
+
 @Singleton
-class ApplicationController @Inject()(postgres: SlickPostgres, cacheApi: CacheApi) extends Controller {
+class ApplicationController @Inject()(
+                                       postgres: SlickPostgres,
+                                       cacheApi: CacheApi,
+                                       aws: AWS,
+                                       cookieSigner: CookieSigner
+                                     ) extends Controller {
+
 
   def getPostParameter(key: String)(implicit request: Request[AnyContent]): Option[String] = {
     request.body.asFormUrlEncoded.flatMap(_.get(key).flatMap(_.headOption))
   }
 
-  def getTextPost(implicit request: Request[AnyContent]): Option[Post] = {
-    getPostParameter("post").map(p => Post.newPost(p))
-  }
-
-  def getLinkPost(implicit request: Request[AnyContent]): Option[Post] = {
-    for {
-      post <- getPostParameter("post")
-      mediaType <- getPostParameter("mediaType").flatMap(mt => Try(mt.toInt).toOption)
-      mediaLink <- getPostParameter("mediaLink")
-    } yield {
-      Post.newPost(post, mediaType, Option(mediaLink))
-    }
-  }
-
-
-  def getMediaPost(implicit request: Request[AnyContent]): Future[Option[Post]] = {
-    val multipart = request.body.asMultipartFormData
-    Future {
-      for {
-        post <- multipart.flatMap(_.dataParts.get("post").flatMap(_.headOption))
-        mediaType <- getPostParameter("mediaType").flatMap(mt => Try(mt.toInt).toOption)
-        file <- multipart.flatMap(_.file("media"))
-      } yield {
-        // Store on S3
-        // TODO
-        Post.newPost(post, mediaType)
-      }
-    }
-  }
-
-
-
-
   val postQuery: TableQuery[PostTable] = TableQuery[PostTable]
   val postInsertQuery= postQuery returning postQuery.map(_.id) into ((post, id) => post.copy(id = id))
   val sessionUserQuery: TableQuery[SessionUserTable] = TableQuery[SessionUserTable]
+  val userQuery: TableQuery[UserTable] = TableQuery[UserTable]
 
   /*
   View a timeline of posts
@@ -92,39 +67,78 @@ class ApplicationController @Inject()(postgres: SlickPostgres, cacheApi: CacheAp
 
   }
 
-  /*
-  Submit a new text post
-   */
-  def submit = Action.async { implicit request =>
-    getTextPost match {
-      case Some(post) => {
-        postgres.db.run(postInsertQuery += post).map(p => Created(p.id))
+  def login = Action {
+    Ok(views.html.login())
+  }
+
+  def login_POST = Action.async { implicit request =>
+
+    val userAuth = for {
+      user <- getPostParameter("user")
+      password <- getPostParameter("password")
+    } yield {
+      postgres.db.run(userQuery.filter(_.id === user).take(1).result).map(_.headOption.exists(_.validatePassword(password))).map {
+        case true => Redirect(routes.ApplicationController.index()).withSession(request.session + "user" -> user)
+        case false => Forbidden
       }
-      case None => Future.successful(UnprocessableEntity)
+    }.recover{
+      case _: Exception => Forbidden
+    }
+
+    userAuth.getOrElse(Future.successful(Forbidden))
+  }
+
+  def logout = Action { implicit request =>
+    Redirect(routes.ApplicationController.index()).withSession(request.session - "user")
+  }
+
+  /*
+  Submit some content
+   */
+  class UserRequest[A](val user: Option[String], request: Request[A]) extends WrappedRequest[A](request)
+  object UserAction extends
+    ActionBuilder[UserRequest] with ActionTransformer[Request, UserRequest] {
+    def transform[A](request: Request[A]) = Future.successful {
+      new UserRequest(request.session.get("user"), request)
+    }
+  }
+  object PermissionCheckAction extends ActionFilter[UserRequest] {
+    def filter[A](user: UserRequest[A]) = Future.successful {
+      if (user.user.isEmpty)
+        Some(Forbidden)
+      else
+        None
     }
   }
 
-  /*
-  Submit an external link post
-   */
-  def submitLinkPost = Action.async {
+  def submit = (UserAction andThen PermissionCheckAction).async { implicit request =>
 
-    getLinkPost match {
-      case Some(post) => {
-        post.mediaType match {
-          case Post.EXT_LINK => postgres.db.run(postInsertQuery += post).map(p => Created(p.id))
-          case _ => Future.successful(UnprocessableEntity)
-        }
+    val postContent: Option[String] = getPostParameter("post")
+    val mediaType: Option[Int] = getPostParameter("mediaType").flatMap(i => Try(i.toInt).toOption)
+    val uploadedFile: Option[MultipartFormData.FilePart[Files.TemporaryFile]] = request.body.asMultipartFormData.flatMap(_.files.headOption)
+
+    Future {
+      mediaType.flatMap {
+        case Post.IMAGE => uploadedFile.map(mfd => aws.uploadToS3(mfd, Option("images")))
+        case Post.VIDEO => uploadedFile.map(mfd => aws.uploadToS3(mfd, Option("video")))
+        case Post.AUDIO => uploadedFile.map(mfd => aws.uploadToS3(mfd, Option("audio")))
+        case Post.EXT_LINK => getPostParameter("mediaLink")
+        case _ => None
       }
-      case None => Future.successful(UnprocessableEntity)
+    }.map { mediaLink =>
+      Post.newPost(
+        postContent.getOrElse(""),
+        mediaType = mediaType.getOrElse(Post.TEXT),
+        mediaLink
+      )
+    }.flatMap {post =>
+      postgres.db.run(postInsertQuery += post).map(p => Created(p.id.toString))
+    }.recover {
+      case _: Exception => UnprocessableEntity
     }
 
   }
 
-  def submitMediaPost = Action.async { implicit request =>
-
-    ???
-  }
 
   def likePost(id: Long) = Action.async { implicit request =>
 
@@ -151,11 +165,6 @@ class ApplicationController @Inject()(postgres: SlickPostgres, cacheApi: CacheAp
       case None => Future.successful(NotFound)
     }
   }
-
-  /*
-  Serve S3 file
-   */
-  def s3File(key: String) = TODO
 
   def postStats = Action.async {
 
