@@ -68,7 +68,7 @@ body {
 
 .post-container {
     margin: 0 auto;
-    /*font-size: 1.25em;*/
+    padding: 0.5em;
 }
 
 .post-header {
@@ -81,6 +81,9 @@ body {
 
 .post-content {
     padding: 1em;
+}
+.post-content img {
+    margin: 0 auto;
 }
 
 .post-audio {
@@ -145,8 +148,29 @@ body {
     overflow-wrap: break-word;
 }
 
-.login {
-    margin: 0 auto;
+.center-text {
     text-align: center;
+}
+
+.center-form {
+    margin: 0 auto;
     padding-top: 2em;
+}
+
+.page-turner {
+    margin: 0 auto;
+    margin-bottom: 2em;
+}
+
+.page-back {
+    text-align: left;
+}
+
+.page-forward {
+    text-align: right;
+}
+
+.tagged a {
+    color: #0078e7;
+    text-decoration: none;
 }

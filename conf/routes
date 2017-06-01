@@ -3,10 +3,13 @@
 # ~~~~
 
 GET         /                         @controllers.ApplicationController.index
-GET         /login                    @controllers.ApplicationController.login
-POST        /login                    @controllers.ApplicationController.login_POST
 GET         /post/:id                 @controllers.ApplicationController.post(id: Long)
 
+GET         /admin/login              @controllers.ApplicationController.login
+POST        /admin/login              @controllers.ApplicationController.login_POST
+GET         /admin/submit             @controllers.ApplicationController.submit
+POST        /admin/submit             @controllers.ApplicationController.submit_POST
+GET         /admin/logout             @controllers.ApplicationController.logout
 
 GET         /api/posts/stats          @controllers.ApplicationController.postStats
 GET         /api/post/:id/like        @controllers.ApplicationController.likePost(id: Long)

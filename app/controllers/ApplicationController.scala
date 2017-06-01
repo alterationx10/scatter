@@ -41,11 +41,30 @@ class ApplicationController @Inject()(
    */
   def index = Action.async { implicit request =>
 
+    val page: Int = request.getQueryString("page").flatMap(p => Try(p.toInt).toOption).getOrElse(0)
+    val tags: Option[List[String]] = request.getQueryString("tags").map(_.split(",").toList.map(_.toLowerCase))
+    val nPosts = 10
+
+    val filteredPostQuery = tags match {
+      case Some(tags) => postQuery.filter(_.tags @& tags)
+      case None => postQuery
+    }
+
     for {
       likedPosts <- postgres.db.run(sessionUserQuery.filter(_.id === request.session.get("session_id").getOrElse("")).result).map(_.headOption).map(_.map(_.likedPosts).getOrElse(List()))
-      posts <- postgres.db.run(postQuery.sortBy(_.id.desc).take(10).result)
+      posts <- postgres.db.run(filteredPostQuery.sortBy(_.id.desc).drop(page * nPosts).take(nPosts).result)
     } yield {
-      Ok(views.html.index(posts, likedPosts)).withSession(request.session)
+      val linkedPostContent = posts.map{ post =>
+        val linked = post.content.split(" ").map{ t =>
+          if (t.startsWith("#")) {
+            s"<a href=${routes.ApplicationController.index()}?tags=${t.replaceAll("#","")}>$t</a>"
+          } else {
+            t
+          }
+        }.mkString(" ")
+        post.copy(content = linked)
+      }
+      Ok(views.html.index(linkedPostContent, likedPosts, page)).withSession(request.session)
     }
 
   }
@@ -78,7 +97,7 @@ class ApplicationController @Inject()(
       password <- getPostParameter("password")
     } yield {
       postgres.db.run(userQuery.filter(_.id === user).take(1).result).map(_.headOption.exists(_.validatePassword(password))).map {
-        case true => Redirect(routes.ApplicationController.index()).withSession(request.session + "user" -> user)
+        case true => Redirect(routes.ApplicationController.index()).withSession(request.session + ("user" -> user))
         case false => Forbidden
       }
     }.recover{
@@ -111,18 +130,25 @@ class ApplicationController @Inject()(
     }
   }
 
-  def submit = (UserAction andThen PermissionCheckAction).async { implicit request =>
+  def submit = (UserAction andThen PermissionCheckAction) { implicit request =>
+    Ok(views.html.submit())
+  }
 
-    val postContent: Option[String] = getPostParameter("post")
-    val mediaType: Option[Int] = getPostParameter("mediaType").flatMap(i => Try(i.toInt).toOption)
-    val uploadedFile: Option[MultipartFormData.FilePart[Files.TemporaryFile]] = request.body.asMultipartFormData.flatMap(_.files.headOption)
+  def submit_POST = (UserAction andThen PermissionCheckAction).async { implicit request =>
+
+
+    val mfd = request.body.asMultipartFormData
+
+    val postContent: Option[String] = mfd.map(_.dataParts).flatMap(_.get("postContent")).flatMap(_.headOption)
+    val mediaType: Option[Int] = mfd.map(_.dataParts).flatMap(_.get("mediaType")).flatMap(_.headOption).flatMap(i => Try(i.toInt).toOption)
+    val uploadedFile: Option[MultipartFormData.FilePart[Files.TemporaryFile]] = mfd.flatMap(_.files.headOption)
 
     Future {
       mediaType.flatMap {
         case Post.IMAGE => uploadedFile.map(mfd => aws.uploadToS3(mfd, Option("images")))
         case Post.VIDEO => uploadedFile.map(mfd => aws.uploadToS3(mfd, Option("video")))
         case Post.AUDIO => uploadedFile.map(mfd => aws.uploadToS3(mfd, Option("audio")))
-        case Post.EXT_LINK => getPostParameter("mediaLink")
+        case Post.EXT_LINK => mfd.map(_.dataParts).flatMap(_.get("mediaLink")).flatMap(_.headOption)
         case _ => None
       }
     }.map { mediaLink =>
@@ -132,9 +158,9 @@ class ApplicationController @Inject()(
         mediaLink
       )
     }.flatMap {post =>
-      postgres.db.run(postInsertQuery += post).map(p => Created(p.id.toString))
+      postgres.db.run(postInsertQuery += post).map(_ => Redirect(routes.ApplicationController.index()))
     }.recover {
-      case _: Exception => UnprocessableEntity
+      case e: Exception => UnprocessableEntity(e.getMessage)
     }
 
   }
@@ -143,21 +169,22 @@ class ApplicationController @Inject()(
   def likePost(id: Long) = Action.async { implicit request =>
 
     val sessionId: String = request.session.get("session_id").getOrElse(UUID.randomUUID().toString)
+    val updatedSession = request.session + ("session_id" -> sessionId)
 
     postgres.db.run(postQuery.filter(_.id === id).result).map(_.headOption).flatMap {
       case Some(post) => {
         postgres.db.run(sessionUserQuery.filter(_.id === sessionId).result).map(_.headOption).flatMap {
           case Some(sUser) => {
             if (sUser.likedPosts.contains(post.id.get)) {
-              Future.successful(Ok(Json.obj("hearts"-> post.nLikes)).withSession("session_id" -> sessionId))
+              Future.successful(Ok(Json.obj("hearts"-> post.nLikes)).withSession(updatedSession))
             } else {
               postgres.db.run(sessionUserQuery.insertOrUpdate(sUser.copy(likedPosts = sUser.likedPosts :+ id)))
-              postgres.db.run(postQuery.insertOrUpdate(post.copy(nLikes = post.nLikes + 1))).map(_ => Ok(Json.obj("hearts"->(post.nLikes+1))).withSession("session_id" -> sessionId))
+              postgres.db.run(postQuery.insertOrUpdate(post.copy(nLikes = post.nLikes + 1))).map(_ => Ok(Json.obj("hearts"->(post.nLikes+1))).withSession(updatedSession))
             }
           }
           case None => {
             postgres.db.run(sessionUserQuery += SessionUser(sessionId, List(id))).flatMap { _ =>
-              postgres.db.run(postQuery.insertOrUpdate(post.copy(nLikes = post.nLikes + 1))).map(_ => Ok(Json.obj("hearts"->(post.nLikes+1))).withSession("session_id" -> sessionId))
+              postgres.db.run(postQuery.insertOrUpdate(post.copy(nLikes = post.nLikes + 1))).map(_ => Ok(Json.obj("hearts"->(post.nLikes+1))).withSession(updatedSession))
             }
           }
         }

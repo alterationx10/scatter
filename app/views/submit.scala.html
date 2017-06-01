@@ -1,0 +1,38 @@
+@import models.Post
+@()
+
+@main("Submit Post") {
+    <div class="pure-u-1 pure-u-md-5-6 center-form">
+        <form class="pure-form pure-form-aligned" method="POST" enctype="multipart/form-data" action="@routes.ApplicationController.submit_POST()">
+            <fieldset>
+                <div class="pure-control-group">
+                    <label for="mediaType">Post Type</label>
+                    <select id="mediaType" name="mediaType" class="pure-input-1-2">
+                        <option value="@Post.TEXT" selected>Text</option>
+                        <option value="@Post.IMAGE">Image</option>
+                        <option value="@Post.VIDEO">Video</option>
+                        <option value="@Post.AUDIO">Audio</option>
+                        <option value="@Post.EXT_LINK">Link</option>
+                    </select>
+                </div>
+
+                <div class="pure-control-group">
+                    <label for="mediaLink">External Link</label>
+                    <input id="mediaLink" name="mediaLink" type="url">
+                </div>
+
+                <div class="pure-control-group">
+                    <input id="file" name="file" type="file">
+                </div>
+
+                <div class="pure-control-group">
+                    <textarea id="postContent" name="postContent" cols="50" rows="4"></textarea>
+                </div>
+
+                <div class="pure-controls">
+                    <button type="submit" class="pure-button pure-button-primary">Submit</button>
+                </div>
+            </fieldset>
+        </form>
+    </div>
+}

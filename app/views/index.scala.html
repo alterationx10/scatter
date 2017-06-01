@@ -1,4 +1,4 @@
-@(posts: Seq[Post], likedPosts: List[Long])
+@(posts: Seq[Post], likedPosts: List[Long], page: Int)
 
 @main("Alteration x10") {
 
@@ -6,6 +6,21 @@
         @for(post <- posts) {
            @views.html.postfragment.render(post, likedPosts.contains(post.id.get))
         }
+    </div>
+
+    <div class="pure-u-1 pure-u-md-5-6 page-turner">
+        <div class="pure-g">
+            <div class="pure-u-1-2 page-back">
+                @if(page > 0){
+                    <a href="@routes.ApplicationController.index()?page=@{page-1}" class="pure-button pure-button-primary">Previous</a>
+                }
+            </div>
+            <div class="pure-u-1-2 page-forward">
+                @if(posts.length == 10) {
+                    <a href="@routes.ApplicationController.index()?page=@{page+1}" class="pure-button pure-button-primary">Next</a>
+                }
+            </div>
+        </div>
     </div>
 
     <script type="text/javascript">
