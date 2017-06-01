@@ -41,7 +41,8 @@ class AWS @Inject()(configuration: Configuration){
     mfd.contentType.foreach(ct => omd.setContentType(ct))
     omd.setCacheControl("max-age=31536000")
     s3Client.putObject(por)
-    s3Client.getUrl(s3Bucket, s3Key).toExternalForm
+    // We have a dotted bucket, so https will show insecure... Make URL the old fashioned way
+    s"https://s3.amazonaws.com/$s3Bucket/$s3Key"
   }
 
 }
