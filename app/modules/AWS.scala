@@ -2,6 +2,7 @@ package modules
 
 import java.io.{File, FileInputStream}
 import java.security.{DigestInputStream, MessageDigest}
+import java.util.UUID
 import javax.inject._
 
 import com.amazonaws.auth.{AWSStaticCredentialsProvider, BasicAWSCredentials}
@@ -9,9 +10,12 @@ import com.amazonaws.services.s3.model.{ObjectMetadata, PutObjectRequest}
 import com.amazonaws.services.s3.{AmazonS3, AmazonS3ClientBuilder}
 import com.amazonaws.services.sns.{AmazonSNS, AmazonSNSClientBuilder}
 import com.google.inject.AbstractModule
+import org.apache.commons.codec.digest.DigestUtils
 import play.api.Configuration
 import play.api.libs.Files
 import play.api.mvc.MultipartFormData
+
+import scala.util.Try
 
 case class AWSSettingsException(key: String) extends Exception(s"Missing key $key in config")
 
@@ -48,19 +52,13 @@ class AWS @Inject()(configuration: Configuration){
   implicit class EnhancedFile(file: File) {
 
     def md5: String = {
-      val md: MessageDigest = MessageDigest.getInstance("MD5")
-      try {
-        val is = new FileInputStream(file)
-        val dis = new DigestInputStream(is, md)
-        try {
-          /* Read decorated stream (dis) to EOF as normal... */
-        } finally {
-          if (is != null) is.close()
-          if (dis != null) dis.close()
-        }
-      }
-      val digest: Array[Byte] = md.digest
-      digest.map("%02x".format(_)).mkString
+
+      val hashOpt = Try {
+        DigestUtils.md5Hex(new FileInputStream(file))
+      }.toOption
+
+      hashOpt.getOrElse(UUID.randomUUID().toString.replaceAll("-",""))
+
     }
 
     def extension: String = file.getName.split("\\.").toList.takeRight(1).headOption.getOrElse("")
