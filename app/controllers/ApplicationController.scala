@@ -4,12 +4,13 @@ import java.util.UUID
 import javax.inject._
 
 import models._
+import models.api.TextBasedPost
 import modules.SlickPostgresProfile.api._
 import modules.{AWS, SlickPostgres}
 import play.api.cache.CacheApi
 import play.api.libs.Files
 import play.api.libs.crypto.CookieSigner
-import play.api.libs.json.Json
+import play.api.libs.json._
 import play.api.mvc._
 import slick.lifted.TableQuery
 
@@ -32,9 +33,14 @@ class ApplicationController @Inject()(
   }
 
   val postQuery: TableQuery[PostTable] = TableQuery[PostTable]
-  val postInsertQuery= postQuery returning postQuery.map(_.id) into ((post, id) => post.copy(id = id))
+  val postInsertQuery = postQuery returning postQuery.map(_.id) into ((post, id) => post.copy(id = id))
   val sessionUserQuery: TableQuery[SessionUserTable] = TableQuery[SessionUserTable]
   val userQuery: TableQuery[UserTable] = TableQuery[UserTable]
+  val apiQuery: TableQuery[ApiKeyTable] = TableQuery[ApiKeyTable]
+
+  implicit class EnhancedStatus(status: Status) {
+    def asFuture = Future.successful(status)
+  }
 
   /*
   View a timeline of posts
@@ -202,6 +208,67 @@ class ApplicationController @Inject()(
           "hearts" -> likeSeq.sum
         )
       )
+    }
+
+  }
+
+
+  def API_SIGNATURE_HEADER: String = "Scatter-IO-Signature"
+
+  class APIRequest[A](val signature: Option[String], request: Request[A]) extends WrappedRequest[A](request)
+
+  object APIAction extends ActionBuilder[APIRequest] with ActionTransformer[Request, APIRequest] {
+    override protected def transform[A](request: Request[A]): Future[APIRequest[A]] = Future.successful {
+      new APIRequest(request.headers.get(API_SIGNATURE_HEADER), request)
+    }
+  }
+
+  object APIHeaderFilter extends ActionFilter[APIRequest] {
+    override protected def filter[A](request: APIRequest[A]): Future[Option[Result]] = Future.successful {
+      if (request.signature.isEmpty) {
+        Some(Forbidden)
+      } else {
+        None
+      }
+    }
+  }
+
+
+
+  /*
+  Handle general text and ext links
+  sha1 hex encoding
+   */
+  def apiPostText = (APIAction andThen APIHeaderFilter).async(parse.json) { implicit request =>
+    import models.api.TextBasedPost._
+
+    val sig: String = request.signature.get
+    val jsonBody = request.body
+    val postFromJson: JsResult[TextBasedPost] = Json.fromJson[TextBasedPost](jsonBody)
+
+    postFromJson match {
+      case JsSuccess(jsPost: TextBasedPost, path: JsPath) => {
+
+        postgres.db.run(apiQuery.filter(_.publicKey === jsPost.publicKey).take(1).result).map(_.headOption).map {
+          case Some(apiKeyPair) => {
+            val computedSig: String = cookieSigner.sign(jsonBody.toString(), apiKeyPair.priv.getBytes)
+            if (computedSig.equals(sig)) {
+              val post: Post =  Post.newPost(
+                jsPost.postContent,
+                mediaType = jsPost.extLink.map(_ => Post.EXT_LINK).getOrElse(Post.TEXT),
+                mediaLink = jsPost.extLink
+              )
+              postgres.db.run(postInsertQuery += post)
+              Ok
+            } else {
+              Forbidden
+            }
+          }
+          case None => Forbidden
+        }
+
+      }
+      case JsError(err) => UnprocessableEntity.asFuture
     }
 
   }
