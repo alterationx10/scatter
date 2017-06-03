@@ -1,7 +1,6 @@
 package modules
 
 import java.io.{File, FileInputStream}
-import java.security.{DigestInputStream, MessageDigest}
 import java.util.UUID
 import javax.inject._
 
@@ -37,7 +36,8 @@ class AWS @Inject()(configuration: Configuration){
   val s3Bucket: String = "vln.evillair.io"
 
   def uploadToS3(mfd: MultipartFormData.FilePart[Files.TemporaryFile], prefix: Option[String] = None): String = {
-    val md5Name = s"${mfd.ref.file.md5}.${mfd.ref.file.extension}"
+    val ext = mfd.filename.split("\\.").toList.takeRight(1).headOption.map(s => s".$s").getOrElse("")
+    val md5Name = s"${mfd.ref.file.md5}$ext"
     val s3Key = prefix.map(p => s"files/$p/$md5Name").getOrElse(s"files/$md5Name").replaceAll("//","/")
     val por = new PutObjectRequest(s3Bucket, s3Key, mfd.ref.file)
     val omd = new ObjectMetadata()
