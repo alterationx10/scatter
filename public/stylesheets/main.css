@@ -84,6 +84,7 @@ body {
 }
 .post-content img {
     margin: 0 auto;
+    border-radius: 5px;
 }
 
 .post-audio {
